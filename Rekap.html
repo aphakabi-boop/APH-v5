@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Eksekutif Rekap APH</title>
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Memanggil Chart.js untuk Grafik -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    body { font-family: 'Poppins', sans-serif; padding: 35px 20px 20px 20px; background-color: #f4f7f6; color: #2c3e50; }
+    .header-title { text-align: center; margin-bottom: 25px; font-weight: 700; color: #198754; letter-spacing: 1px;}
+    .filter-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 25px; border-top: 4px solid #198754; }
+    
+    /* Styling untuk Kartu KPI */
+    .kpi-card { border-radius: 12px; padding: 20px; color: white; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.08); transition: all 0.3s ease; border: none; }
+    .kpi-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.15); }
+    .kpi-title { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; opacity: 0.9; margin-bottom: 8px; letter-spacing: 0.5px;}
+    .kpi-value { font-size: 2.2rem; font-weight: 700; margin: 0; line-height: 1; }
+    
+    /* Palet Warna Gradien Profesional */
+    .bg-stok { background: linear-gradient(135deg, #636e72, #2d3436); }
+    .bg-prod { background: linear-gradient(135deg, #0984e3, #0056b3); }
+    .bg-perb { background: linear-gradient(135deg, #8e44ad, #732d91); }
+    .bg-manfaat { background: linear-gradient(135deg, #e17055, #d35400); }
+    .bg-sisa { background: linear-gradient(135deg, #00b894, #058f73); }
+
+    /* Styling untuk Chart Container */
+    .chart-container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 25px; height: 380px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .chart-header { width: 100%; border-bottom: 2px solid #f1f2f6; padding-bottom: 12px; margin-bottom: 15px; text-align: center;}
+    .chart-title { font-size: 1.1rem; font-weight: 600; color: #2d3436; margin: 0;}
+    
+    .table th { vertical-align: middle; }
+    .table-container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+  </style>
+</head>
+<body>
+
+  <div class="header-title">
+    <h2>📊 DASHBOARD EKSEKUTIF PENGEMBANGAN APH</h2>
+    <div class="d-flex justify-content-center gap-3 mb-2 mt-3">
+      <a href="<?= ScriptApp.getService().getUrl() ?>" target="_top" class="btn btn-outline-secondary rounded-pill px-4 fw-bold shadow-sm">📝 Form Utama</a>
+      <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" disabled>📊 Dashboard Rekap</button>
+    </div>
+  </div>
+
+  <!-- KOTAK FILTER -->
+  <div class="filter-box container-fluid">
+    <div class="row align-items-end">
+      <div class="col-md mb-2">
+        <label class="form-label fw-bold text-secondary small">DARI BULAN:</label>
+        <select id="filterBulanMulai" class="form-select border-success shadow-sm" onchange="muatDataRekap()">
+          <option value="ALL">-- Paling Awal --</option>
+        </select>
+      </div>
+      <div class="col-md mb-2">
+        <label class="form-label fw-bold text-secondary small">SAMPAI BULAN:</label>
+        <select id="filterBulanAkhir" class="form-select border-success shadow-sm" onchange="muatDataRekap()">
+          <option value="ALL">-- Paling Akhir --</option>
+        </select>
+      </div>
+      <!-- FILTER JENIS PROGRAM -->
+      <div class="col-md mb-2">
+        <label class="form-label fw-bold text-secondary small">JENIS PROGRAM:</label>
+        <select id="filterProgram" class="form-select" onchange="gantiProgram()">
+          <option value="ALL">-- Semua Program --</option>
+          <option value="P4">P4</option>
+          <option value="PPHT">PPHT</option>
+        </select>
+      </div>
+      <div class="col-md mb-2">
+        <label class="form-label fw-bold text-secondary small">PROVINSI:</label>
+        <select id="filterProvinsi" class="form-select border-primary shadow-sm" onchange="gantiProvinsi()">
+          <option value="ALL">-- Semua Provinsi --</option>
+        </select>
+      </div>
+      <div class="col-md mb-2">
+        <label class="form-label fw-bold text-secondary small">KELOMPOK TANI:</label>
+        <select id="filterPoktan" class="form-select border-primary shadow-sm" onchange="muatDataRekap()">
+          <option value="ALL">-- Semua Kelompok Tani --</option>
+        </select>
+      </div>
+      <div class="col-md mb-2">
+        <label class="form-label fw-bold text-secondary small">TINGKAT LAPORAN:</label>
+        <select id="filterTingkat" class="form-select border-dark bg-light shadow-sm fw-bold" onchange="aturModeTingkat()">
+          <option value="DETAIL">Rinci (Per Poktan)</option>
+          <option value="TOTAL">Total (Per Provinsi)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- KARTU KPI (RINGKASAN ANGKA) -->
+  <div class="container-fluid mb-3">
+    <div class="row">
+      <div class="col-md mb-3">
+        <div class="kpi-card bg-stok">
+          <div class="kpi-title">Total Stok Awal</div>
+          <div class="kpi-value" id="valStok">0</div>
+        </div>
+      </div>
+      <div class="col-md mb-3">
+        <div class="kpi-card bg-prod">
+          <div class="kpi-title">Total Produksi</div>
+          <div class="kpi-value" id="valProd">0</div>
+        </div>
+      </div>
+      <div class="col-md mb-3">
+        <div class="kpi-card bg-perb">
+          <div class="kpi-title">Total Perbanyakan</div>
+          <div class="kpi-value" id="valPerb">0</div>
+        </div>
+      </div>
+      <div class="col-md mb-3">
+        <div class="kpi-card bg-manfaat">
+          <div class="kpi-title">Total Pemanfaatan</div>
+          <div class="kpi-value" id="valManfaat">0</div>
+        </div>
+      </div>
+      <div class="col-md mb-3">
+        <div class="kpi-card bg-sisa">
+          <div class="kpi-title">Total Sisa Stok</div>
+          <div class="kpi-value" id="valSisa">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SWITCHER GRAFIK INTERAKTIF -->
+  <div class="container-fluid mb-2">
+    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded-top-3 border-bottom shadow-sm">
+      <div class="d-flex align-items-center gap-3">
+        <h5 class="fw-bold text-success mb-0">📈 Visualisasi Data Interaktif</h5>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <label class="form-label mb-0 fw-bold small text-secondary">METRIK GRAFIK:</label>
+        <select id="grafikSwitcher" class="form-select form-select-sm border-primary fw-bold text-primary shadow-sm" style="width: auto; cursor: pointer;" onchange="gambarUlangGrafik()">
+          <option value="prod" selected>Produksi</option>
+          <option value="perb">Perbanyakan</option>
+          <option value="stok">Stok Awal</option>
+          <option value="pem">Pemanfaatan</option>
+          <option value="sisa">Sisa Stok</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRAFIK (PIE & BAR) -->
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-5 mb-3">
+        <div class="chart-container rounded-top-0">
+          <div class="chart-header">
+            <h6 class="chart-title" id="titlePie">Persentase Jenis APH</h6>
+          </div>
+          <div style="position: relative; height: 100%; width: 100%;">
+             <canvas id="pieChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-7 mb-3">
+        <div class="chart-container rounded-top-0">
+          <div class="chart-header">
+            <h6 class="chart-title" id="titleBar">Volume: Eksplorasi vs LPHP</h6>
+          </div>
+          <div style="position: relative; height: 100%; width: 100%;">
+             <canvas id="barChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABEL REKAP -->
+  <div class="container-fluid mb-5">
+    <div class="table-container table-responsive">
+      <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <h5 class="fw-bold text-success mb-0">📋 Rincian Data APH</h5>
+      </div>
+      <table class="table table-bordered table-striped table-hover align-middle" style="font-size: 0.85em;">
+        <thead class="table-primary text-center align-middle sticky-top">
+          <tr>
+            <th rowspan="2" style="vertical-align: middle;">Periode</th>
+            <th rowspan="2" style="vertical-align: middle;">Provinsi</th>
+            <th rowspan="2" style="vertical-align: middle;" id="thPoktan">Kelompok Tani</th>
+            
+            <!-- Header Kategori Eksplorasi -->
+            <th colspan="7" style="text-align: center; background-color: #d6eaff; color: #1e3a5f;">EKSPLORASI</th>
+            
+            <!-- Header Kategori LPHP -->
+            <th colspan="7" style="text-align: center; background-color: #d6f5e3; color: #1e4620;">LPHP / ISOLAT</th>
+          </tr>
+          <tr>
+            <!-- Sub-kolom Eksplorasi -->
+            <th>Jenis APH</th>
+            <th>Satuan</th>
+            <th>Stok Awal</th>
+            <th>Produksi</th>
+            <th>Perbanyakan</th>
+            <th>Pemanfaatan</th>
+            <th>Sisa</th>
+            
+            <!-- Sub-kolom LPHP -->
+            <th>Jenis APH</th>
+            <th>Satuan</th>
+            <th>Stok Awal</th>
+            <th>Produksi</th>
+            <th>Perbanyakan</th>
+            <th>Pemanfaatan</th>
+            <th>Sisa</th>
+          </tr>
+        </thead>
+        <tbody id="rekapBody">
+          <tr>
+            <td colspan="17" class="text-center py-4">⏳ Memuat data rekap APH...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+<script>
+    let myPieChart = null;
+    let myBarChart = null;
+    let globalChartData = {}; 
+    let currentWilayah = ""; 
+    let globalOptions = {}; 
+
+    window.addEventListener('DOMContentLoaded', () => {
+      muatFilterDulu();
+    });
+
+    function muatFilterDulu() {
+      google.script.run.withSuccessHandler(isiDropdownFilter).getFilterOptions();
+    }
+
+    function isiDropdownFilter(options) {
+      globalOptions = options || {}; 
+      let selMulai = document.getElementById('filterBulanMulai');
+      let selAkhir = document.getElementById('filterBulanAkhir');
+      
+      if (globalOptions.bulan) {
+        globalOptions.bulan.forEach(b => {
+          selMulai.appendChild(new Option(b, b));
+          selAkhir.appendChild(new Option(b, b));
+        });
+      }
+      
+      updateDropdownProvinsi('ALL');
+      updateDropdownPoktan('ALL', 'ALL');
+      muatDataRekap();
+    }
+
+    function gantiProgram() {
+      let progPilihan = document.getElementById('filterProgram').value;
+      updateDropdownProvinsi(progPilihan);
+      document.getElementById('filterProvinsi').value = 'ALL';
+      updateDropdownPoktan(progPilihan, 'ALL');
+      document.getElementById('filterPoktan').value = 'ALL';
+      muatDataRekap();
+    }
+
+    function gantiProvinsi() {
+      let progPilihan = document.getElementById('filterProgram').value;
+      let provPilihan = document.getElementById('filterProvinsi').value;
+      updateDropdownPoktan(progPilihan, provPilihan);
+      document.getElementById('filterPoktan').value = 'ALL';
+      muatDataRekap();
+    }
+
+    function updateDropdownProvinsi(program) {
+      let selProv = document.getElementById('filterProvinsi');
+      selProv.innerHTML = '<option value="ALL">-- Semua Provinsi --</option>';
+      let daftarProv = new Set();
+      let isAllProgram = (!program || program === 'ALL' || String(program).includes('--'));
+
+      if (isAllProgram) {
+         if (globalOptions.allProvinsi) globalOptions.allProvinsi.forEach(p => daftarProv.add(p));
+      } else {
+         if (globalOptions.programMap && globalOptions.programMap[program]) {
+            Object.keys(globalOptions.programMap[program]).forEach(p => daftarProv.add(p));
+         }
+      }
+      Array.from(daftarProv).sort().forEach(p => selProv.appendChild(new Option(p, p)));
+    }
+
+    function updateDropdownPoktan(program, provinsi) {
+      let selPoktan = document.getElementById('filterPoktan');
+      selPoktan.innerHTML = '<option value="ALL">-- Semua Kelompok Tani --</option>'; 
+      let daftarPoktan = new Set();
+      let isAllProgram = (!program || program === 'ALL' || String(program).includes('--'));
+      let isAllProv = (!provinsi || provinsi === 'ALL');
+
+      if (isAllProgram) {
+         if (isAllProv) {
+             if (globalOptions.allPoktan) globalOptions.allPoktan.forEach(p => daftarPoktan.add(p));
+         } else {
+             if (globalOptions.programMap) {
+                 for (let prog in globalOptions.programMap) {
+                     if (globalOptions.programMap[prog][provinsi]) {
+                         globalOptions.programMap[prog][provinsi].forEach(p => daftarPoktan.add(p));
+                     }
+                 }
+             }
+         }
+      } else {
+         if (isAllProv) {
+             if (globalOptions.programMap && globalOptions.programMap[program]) {
+                 for (let prov in globalOptions.programMap[program]) {
+                     globalOptions.programMap[program][prov].forEach(p => daftarPoktan.add(p));
+                 }
+             }
+         } else {
+             if (globalOptions.programMap && globalOptions.programMap[program] && globalOptions.programMap[program][provinsi]) {
+                 globalOptions.programMap[program][provinsi].forEach(p => daftarPoktan.add(p));
+             }
+         }
+      }
+      Array.from(daftarPoktan).sort().forEach(p => selPoktan.appendChild(new Option(p, p)));
+    }
+
+    function aturModeTingkat() {
+      let tingkat = document.getElementById('filterTingkat').value;
+      let selPoktan = document.getElementById('filterPoktan');
+      if (tingkat === 'TOTAL') {
+        selPoktan.value = 'ALL';
+        selPoktan.disabled = true;
+      } else {
+        selPoktan.disabled = false;
+      }
+      muatDataRekap();
+    }
+
+    function muatDataRekap() {
+      let bMulai = document.getElementById('filterBulanMulai').value; 
+      let bAkhir = document.getElementById('filterBulanAkhir').value; 
+
+      if (bMulai !== 'ALL' && bAkhir !== 'ALL' && formatBulanSort(bMulai) > formatBulanSort(bAkhir)) {
+          alert("Bulan Mulai tidak boleh lebih dari Bulan Akhir!");
+          return; // Hentikan eksekusi
+      }
+
+      let prov = document.getElementById('filterProvinsi').value; 
+      let poktan = document.getElementById('filterPoktan').value; 
+      let program = document.getElementById('filterProgram').value;
+            let tbody = document.getElementById('rekapBody');
+      let colSpan = document.getElementById('filterTingkat').value === 'TOTAL' ? 16 : 17;
+
+      tbody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-5"><div class="spinner-border text-success mb-2" role="status"></div><h5 class="text-success">Menerapkan filter dinamis...</h5></td></tr>`;
+      currentWilayah = prov !== 'ALL' ? ' - ' + prov : '';
+
+      google.script.run.withSuccessHandler(prosesDataDanTabel).getRekapDataServer(bMulai, bAkhir, prov, poktan, program);
+    }
+
+    // FUNGSI PERBAIKAN: Mengonversi SEMUA jenis format tanggal (MM-YYYY, YYYY-MM, ISO Date) ke integer YYYYMM
+    function formatBulanSort(str) {
+      if (!str || str === "ALL" || str === "-" || String(str).trim() === "") return 0;
+      let s = String(str).trim();
+
+      // Jika format ISO Date String dari Apps Script (misal: "2026-08-01T00:00:00.000Z")
+      if (s.includes('T') || s.includes('GMT') || s.includes('Z')) {
+        let d = new Date(s);
+        if (!isNaN(d.getTime())) {
+          return d.getFullYear() * 100 + (d.getMonth() + 1);
+        }
+      }
+
+      let parts = s.split(/[\/\-\sT.]+/);
+      if (parts.length < 2) return 0;
+
+      let y = 0, m = 0;
+      if (parts[0].length === 4) {
+        // Format YYYY-MM atau YYYY-MM-DD
+        y = parseInt(parts[0]);
+        m = parseInt(parts[1]);
+      } else if (parts[parts.length - 1].length === 4) {
+        // Format MM-YYYY atau DD-MM-YYYY
+        y = parseInt(parts[parts.length - 1]);
+        m = parseInt(parts[parts.length - 2]);
+      }
+
+      if (y > 0 && m > 0 && m <= 12) {
+        return y * 100 + m;
+      }
+
+      return 0;
+    }
+
+    function prosesDataDanTabel(data) {
+      let tbody = document.getElementById('rekapBody');
+      let tingkat = document.getElementById('filterTingkat').value;
+      let thPoktan = document.getElementById('thPoktan');
+      
+      tbody.innerHTML = ''; 
+      globalChartData = {}; 
+      
+      let colSpan = tingkat === 'TOTAL' ? 16 : 17;
+      
+      if (!data || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-4 text-danger fw-bold">Belum ada data rekap yang tersedia / Tidak ditemukan data.</td></tr>`;
+        ['valStok','valProd','valPerb','valManfaat','valSisa'].forEach(id => document.getElementById(id).innerText = "0");
+        if(myPieChart) myPieChart.destroy();
+        if(myBarChart) myBarChart.destroy();
+        return;
+      }
+
+      let bMulai = document.getElementById('filterBulanMulai').value; 
+      let bAkhir = document.getElementById('filterBulanAkhir').value; 
+      let valMulai = formatBulanSort(bMulai);
+      let valAkhir = formatBulanSort(bAkhir);
+      
+      let labelPeriode = "";
+      if (bMulai === 'ALL' && bAkhir === 'ALL') {
+        labelPeriode = "Semua Periode";
+      } else if (bMulai === bAkhir) {
+        labelPeriode = bMulai;
+      } else {
+        labelPeriode = `${bMulai} s.d ${bAkhir}`;
+      }
+      
+      let dataFinal = [];
+      let mapTotal = {};
+
+      let cleanStr = (val) => {
+        if (val === null || val === undefined) return '-';
+        let s = String(val).trim();
+        return (s === '' || s.toLowerCase() === 'undefined' || s.toLowerCase() === 'null') ? '-' : s;
+      };
+
+      data.forEach(row => {
+        let tglProdEks = row[0], tglPerbEks = row[1], tglPemEks = row[2];
+        let tglProdLphp = row[3], tglPerbLphp = row[4], tglPemLphp = row[5];
+        let prov = cleanStr(row[6]), poktan = cleanStr(row[7]), program = cleanStr(row[8]);
+        
+        let jenisEks = cleanStr(row[9]), satEks = cleanStr(row[10]);
+        let stokEks = Number(row[11]) || 0;
+        let prodEks = Number(row[12]) || 0;
+        let perbEks = Number(row[13]) || 0;
+        let pemEks = Number(row[14]) || 0;
+        
+        let jenisLphp = cleanStr(row[16]), satLphp = cleanStr(row[17]);
+        let stokLphp = Number(row[18]) || 0;
+        let prodLphp = Number(row[19]) || 0;
+        let perbLphp = Number(row[20]) || 0;
+        let pemLphp = Number(row[21]) || 0;
+
+// Pemfilteran Tanggal Presisi
+        if (valMulai > 0 || valAkhir > 0) {
+            let minVal = valMulai > 0 ? valMulai : 0;
+            let maxVal = valAkhir > 0 ? valAkhir : 999999;
+
+            let isPast = (tgl) => {
+              let v = formatBulanSort(tgl);
+              return v !== 0 && v < minVal; // Cek apakah tanggal terjadi SEBELUM bulan filter
+            };
+
+            let inRange = (tgl) => {
+              let v = formatBulanSort(tgl);
+              if (v === 0) return true; // Jika tidak ada tanggal khusus, pertahankan nilai
+              return v >= minVal && v <= maxVal;
+            };
+
+            // --- PERBAIKAN AKUNTANSI ---
+            // Pindahkan semua aktivitas masa lalu (sebelum bulan filter) ke Stok Awal!
+            if (isPast(tglProdEks)) stokEks += prodEks;
+            if (isPast(tglPerbEks)) stokEks += perbEks;
+            if (isPast(tglPemEks))  stokEks -= pemEks; // Pemanfaatan masa lalu mengurangi stok
+
+            if (isPast(tglProdLphp)) stokLphp += prodLphp;
+            if (isPast(tglPerbLphp)) stokLphp += perbLphp;
+            if (isPast(tglPemLphp))  stokLphp -= pemLphp;
+
+            // Terapkan filter tampilan: Nol-kan aktivitas jika bukan di bulan yang difilter
+            if (!inRange(tglProdEks)) prodEks = 0;
+            if (!inRange(tglPerbEks)) perbEks = 0;
+            if (!inRange(tglPemEks)) pemEks = 0;
+            
+            if (!inRange(tglProdLphp)) prodLphp = 0;
+            if (!inRange(tglPerbLphp)) perbLphp = 0;
+            if (!inRange(tglPemLphp)) pemLphp = 0;
+        }
+
+        // --- TAMBAHAN LOGIKA BARU UNTUK MENGHAPUS NAMA APH (YANG BEDA BULAN) ---
+        if (stokEks === 0 && prodEks === 0 && perbEks === 0 && pemEks === 0) {
+            jenisEks = '-';
+            satEks = '-';
+        }
+        
+        if (stokLphp === 0 && prodLphp === 0 && perbLphp === 0 && pemLphp === 0) {
+            jenisLphp = '-';
+            satLphp = '-';
+        }
+        // ------------------------------------------------------------------------
+
+        // Abaikan baris hanya jika tidak ada stok maupun aktivitas volume sama sekali
+        if ((stokEks + prodEks + perbEks + pemEks) === 0 && (stokLphp + prodLphp + perbLphp + pemLphp) === 0) return;
+
+        // Hitung sisa SETELAH penyesuaian Stok Awal, agar perhitungan selalu balance dan tak ada minus!
+        let sisaEks = stokEks + prodEks + perbEks - pemEks;
+        let sisaLphp = stokLphp + prodLphp + perbLphp - pemLphp;
+
+        if (tingkat === 'TOTAL') {
+          let key = `${labelPeriode}|${prov}|${program}|${jenisEks}|${satEks}|${jenisLphp}|${satLphp}`;
+          if (!mapTotal[key]) {
+            mapTotal[key] = { labelPeriode, prov, poktan, program, jenisEks, satEks, stokEks, prodEks, perbEks, pemEks, sisaEks, jenisLphp, satLphp, stokLphp, prodLphp, perbLphp, pemLphp, sisaLphp };
+          } else {
+            mapTotal[key].stokEks += stokEks; mapTotal[key].prodEks += prodEks; mapTotal[key].perbEks += perbEks; mapTotal[key].pemEks += pemEks; mapTotal[key].sisaEks += sisaEks;
+            mapTotal[key].stokLphp += stokLphp; mapTotal[key].prodLphp += prodLphp; mapTotal[key].perbLphp += perbLphp; mapTotal[key].pemLphp += pemLphp; mapTotal[key].sisaLphp += sisaLphp;
+          }
+        } else {
+          dataFinal.push({ labelPeriode, prov, poktan, program, jenisEks, satEks, stokEks, prodEks, perbEks, pemEks, sisaEks, jenisLphp, satLphp, stokLphp, prodLphp, perbLphp, pemLphp, sisaLphp });
+        }
+      });
+      
+      if (tingkat === 'TOTAL') {
+        if(thPoktan) thPoktan.style.display = 'none'; 
+        dataFinal = Object.values(mapTotal);
+      } else {
+        if(thPoktan) thPoktan.style.display = ''; 
+      }
+
+      let totStok = 0, totProd = 0, totPerb = 0, totPem = 0, totSisa = 0;
+      let htmlBaris = '';
+
+        dataFinal.forEach(obj => {
+        let htmlPoktan = tingkat === 'TOTAL' ? '' : `<td class="text-start">${obj.poktan}</td>`;
+        
+        // --- Kondisikan angka agar kosong jika jenis APH kosong (-) ---
+        let showStokEks = obj.jenisEks === '-' ? '' : obj.stokEks;
+        let showProdEks = obj.jenisEks === '-' ? '' : obj.prodEks;
+        let showPerbEks = obj.jenisEks === '-' ? '' : obj.perbEks;
+        let showPemEks  = obj.jenisEks === '-' ? '' : obj.pemEks;
+        let showSisaEks = obj.jenisEks === '-' ? '' : obj.sisaEks;
+
+        let showStokLphp = obj.jenisLphp === '-' ? '' : obj.stokLphp;
+        let showProdLphp = obj.jenisLphp === '-' ? '' : obj.prodLphp;
+        let showPerbLphp = obj.jenisLphp === '-' ? '' : obj.perbLphp;
+        let showPemLphp  = obj.jenisLphp === '-' ? '' : obj.pemLphp;
+        let showSisaLphp = obj.jenisLphp === '-' ? '' : obj.sisaLphp;
+        // -----------------------------------------------------------------
+
+        htmlBaris += `
+          <tr class="text-center align-middle">
+            <td class="fw-bold">${obj.labelPeriode}</td>
+            <td>${obj.prov}</td>
+            ${htmlPoktan}
+            <td class="text-start fw-bold text-success">${obj.jenisEks === '-' ? '' : obj.jenisEks}</td> 
+            <td>${obj.satEks === '-' ? '' : obj.satEks}</td>
+            <td class="table-light">${showStokEks}</td>
+            <td class="table-light">${showProdEks}</td>
+            <td class="table-light fw-bold text-secondary">${showPerbEks}</td>
+            <td class="table-light">${showPemEks}</td>
+            <td class="fw-bold table-primary text-primary">${showSisaEks}</td> 
+            <td class="text-start fw-bold text-success">${obj.jenisLphp === '-' ? '' : obj.jenisLphp}</td> 
+            <td>${obj.satLphp === '-' ? '' : obj.satLphp}</td>
+            <td class="table-light">${showStokLphp}</td>
+            <td class="table-light">${showProdLphp}</td>
+            <td class="table-light fw-bold text-secondary">${showPerbLphp}</td>
+            <td class="table-light">${showPemLphp}</td>
+            <td class="fw-bold table-warning text-dark">${showSisaLphp}</td> 
+          </tr>
+        `;
+
+        totStok += (obj.stokEks + obj.stokLphp);
+        totProd += (obj.prodEks + obj.prodLphp);
+        totPerb += (obj.perbEks + obj.perbLphp);
+        totPem += (obj.pemEks + obj.pemLphp);
+        totSisa += (obj.sisaEks + obj.sisaLphp);
+
+        let recChart = (jenis, t, s, pr, pe, pm, si) => {
+            if (jenis && jenis !== "-" && jenis !== "undefined") {
+               if(!globalChartData[jenis]) globalChartData[jenis] = { stok:{eks:0,lphp:0}, prod:{eks:0,lphp:0}, perb:{eks:0,lphp:0}, pem:{eks:0,lphp:0}, sisa:{eks:0,lphp:0} };
+               globalChartData[jenis].stok[t] += s; globalChartData[jenis].prod[t] += pr; globalChartData[jenis].perb[t] += pe; globalChartData[jenis].pem[t] += pm; globalChartData[jenis].sisa[t] += si;
+            }
+        };
+        recChart(obj.jenisEks, 'eks', obj.stokEks, obj.prodEks, obj.perbEks, obj.pemEks, obj.sisaEks);
+        recChart(obj.jenisLphp, 'lphp', obj.stokLphp, obj.prodLphp, obj.perbLphp, obj.pemLphp, obj.sisaLphp);
+      });
+      
+      tbody.innerHTML = htmlBaris || `<tr><td colspan="${colSpan}" class="text-center py-4 text-danger fw-bold">Tidak ada data untuk rentang waktu ini.</td></tr>`;
+
+      document.getElementById('valStok').innerText = totStok.toLocaleString('id-ID');
+      document.getElementById('valProd').innerText = totProd.toLocaleString('id-ID');
+      document.getElementById('valPerb').innerText = totPerb.toLocaleString('id-ID');
+      document.getElementById('valManfaat').innerText = totPem.toLocaleString('id-ID');
+      document.getElementById('valSisa').innerText = totSisa.toLocaleString('id-ID');
+
+      gambarUlangGrafik();
+    }
+
+    function gambarUlangGrafik() {
+      if(myPieChart) myPieChart.destroy();
+      if(myBarChart) myBarChart.destroy();
+
+      let metric = document.getElementById('grafikSwitcher').value;
+      let metricName = document.getElementById('grafikSwitcher').options[document.getElementById('grafikSwitcher').selectedIndex].text;
+      
+      document.getElementById('titlePie').innerText = `Persentase ${metricName} APH ${currentWilayah}`;
+      document.getElementById('titleBar').innerText = `Volume ${metricName}: Eksplorasi vs LPHP ${currentWilayah}`;
+
+      let labels = Object.keys(globalChartData);
+      let filteredLabels = labels.filter(label => (globalChartData[label][metric].eks + globalChartData[label][metric].lphp) !== 0);
+
+      let dataEksplorasi = filteredLabels.map(label => globalChartData[label][metric].eks);
+      let dataLPHP = filteredLabels.map(label => globalChartData[label][metric].lphp);
+      let dataTotal = filteredLabels.map(label => globalChartData[label][metric].eks + globalChartData[label][metric].lphp);
+
+      const colorsPie = ['#fd7e14', '#0984e3', '#00b894', '#f1c40f', '#8e44ad', '#e84393', '#2d3436', '#d35400'];
+
+      const ctxPie = document.getElementById('pieChart').getContext('2d');
+      myPieChart = new Chart(ctxPie, {
+        type: 'pie',
+        data: { labels: filteredLabels, datasets: [{ data: dataTotal, backgroundColor: colorsPie, borderWidth: 1, hoverOffset: 6 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+      });
+
+      const ctxBar = document.getElementById('barChart').getContext('2d');
+      myBarChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+          labels: filteredLabels,
+          datasets: [
+            { label: `${metricName} Eksplorasi`, data: dataEksplorasi, backgroundColor: '#0984e3', borderRadius: 4 },
+            { label: `${metricName} LPHP`, data: dataLPHP, backgroundColor: '#f1c40f', borderRadius: 4 }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      });
+    }
+</script>
+</body>
+</html>

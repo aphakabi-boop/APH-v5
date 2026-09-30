@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Form Data Stok APH Kegiatan P4</title> 
+
+  <!-- Load style dari file style.html -->
+  <?!= HtmlService.createHtmlOutputFromFile('style').getContent(); ?>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- PORTAL BERANDA -->
+<div id="landing-page">
+  <div class="landing-content">
+    <img src="https://github.com/aphakabi-boop/Web-Assets/blob/main/Ladybug.jpg?raw=true" style="width: 520px; height: 170px; object-fit: cover; border-radius: 12px; border: 3px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin-bottom: 10px;" alt="Logo APH">
+    <h1>PORTAL PELAPORAN APH</h1>
+    <p>Silakan pilih jenis kegiatan yang akan dilaporkan:</p>
+    <div class="button-group">
+      <button type="button" class="btn-portal btn-p4" onclick="pilihProgram('P4')">Laporan Kegiatan P4</button>
+      <button type="button" class="btn-portal btn-ppht" onclick="pilihProgram('PPHT')">Laporan Kegiatan PPHT</button>
+    </div>
+  </div>
+</div>
+
+<div id="main-app-container" style="display: none;">
+<div class="header-title">
+  <h2 id="form-title">Formulir Data Stok APH Kegiatan P4</h2>
+</div>
+
+<!-- Style khusus untuk menu navigasi -->
+<style>
+  .custom-nav {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+  .nav-btn {
+    text-decoration: none;
+    padding: 10px 24px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.95em;
+    color: #4a4a4a;
+    background-color: #f1f2f6;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border: 1px solid #dfe4ea;
+  }
+  .nav-btn:hover {
+    background-color: #eccc68; /* Warna kuning halus saat disentuh */
+    color: #2f3542;
+    transform: translateY(-2px);
+  }
+  .nav-btn.active {
+    background-color: #2ed573; /* Hijau segar untuk menu aktif */
+    color: white;
+    border: none;
+    box-shadow: 0 4px 8px rgba(46, 213, 115, 0.3);
+  }
+</style>
+
+<div class="custom-nav">
+  <a href="<?= ScriptApp.getService().getUrl() ?>" target="_top" class="nav-btn active">📝 Beranda</a>
+  <a href="<?= ScriptApp.getService().getUrl() ?>?page=rekap" target="_top" class="nav-btn">📊 Rekap Stok & Produksi</a>
+</div>
+
+<form id="myForm" method="post">
+  <input type="hidden" id="jenis_program" name="jenis_program" value="">
+  <div id="form-section">
+  <label for="provinsi">Provinsi</label>
+  <input type="text" name="provinsi" id="provinsi" placeholder="Provinsi" required>
+
+  <label for="kabupaten">Kabupaten / Kota</label>
+  <input type="text" name="kabupaten" id="kabupaten" placeholder="Kabupaten / Kota" required>
+
+  <label for="kecamatan">Kecamatan</label>
+  <input type="text" name="kecamatan" id="kecamatan" placeholder="Kecamatan" required>
+
+  <label for="desa">Desa</label>
+  <input type="text" name="desa" id="desa" placeholder="Desa" required>
+
+  <label for="penerima">Nama Penerima P4 T.A 2026</label>
+  <input type="text" name="penerima" id="penerima" placeholder="Kelompok Tani" required>
+
+  <div class="section-title">Produksi APH (Hasil Eksplorasi)</div>
+  <div id="produksi-explorasi"></div>
+  <div class="aph-actions">
+  <button type="button" class="btn-add-inline" onclick="addRow('produksi-explorasi')">+ Tambah APH</button>
+  <button type="button" class="btn-delete-inline" onclick="removeRow('produksi-explorasi')">❌ Hapus</button>
+  </div>
+
+  <div class="section-title">Produksi APH (Isolat LPHP)</div>
+  <div id="produksi-isolat"></div>
+  <div class="aph-actions">
+  <button type="button" class="btn-add-inline" onclick="addRow('produksi-isolat')">+ Tambah APH</button>
+  <button type="button" class="btn-delete-inline" onclick="removeRow('produksi-isolat')">❌ Hapus</button>
+  </div>
+
+  <div class="section-title">Perbanyakan APH (Hasil Eksplorasi)</div>
+  <div id="perbanyakan-explorasi"></div>
+  <div class="aph-actions">
+  <button type="button" class="btn-add-inline" onclick="addRow('perbanyakan-explorasi')">+ Tambah APH</button>
+  <button type="button" class="btn-delete-inline" onclick="removeRow('perbanyakan-explorasi')">❌ Hapus</button>
+  </div>
+
+  <div class="section-title">Perbanyakan APH (Isolat LPHP)</div>
+  <div id="perbanyakan-isolat"></div>
+  <div class="aph-actions">
+  <button type="button" class="btn-add-inline" onclick="addRow('perbanyakan-isolat')">+ Tambah APH</button>
+  <button type="button" class="btn-delete-inline" onclick="removeRow('perbanyakan-isolat')">❌ Hapus</button>
+  </div>
+
+  <div class="section-title">Pemanfaatan APH (Hasil Eksplorasi)</div>
+  <div id="pemanfaatan-explorasi"></div>
+  <div class="aph-actions">
+  <button type="button" class="btn-add-inline" onclick="addRow('pemanfaatan-explorasi')">+ Tambah APH</button>
+  <button type="button" class="btn-delete-inline" onclick="removeRow('pemanfaatan-explorasi')">❌ Hapus</button>
+  </div>
+
+  <div class="section-title">Pemanfaatan APH (Isolat LPHP)</div>
+  <div id="pemanfaatan-isolat"></div>
+  <div class="aph-actions">
+  <button type="button" class="btn-add-inline" onclick="addRow('pemanfaatan-isolat')">+ Tambah APH</button>
+  <button type="button" class="btn-delete-inline" onclick="removeRow('pemanfaatan-isolat')">❌ Hapus</button>
+  </div>
+
+  <!-- WADAH SERANGAN OPT -->
+<div class="section-title">Serangan OPT</div>
+<div id="serangan-opt"></div>
+<div class="aph-actions">
+  <button type="button" class="btn-add-inline" onclick="addRowOpt('serangan-opt')">+ Tambah OPT</button>
+  <button type="button" class="btn-delete-inline" onclick="removeRow('serangan-opt')">❌ Hapus</button>
+</div>
+
+<label>📸 Upload Foto Eviden (maks. 4 foto)</label>
+
+<input
+  type="file"
+  id="fotoEviden"
+  accept="image/*"
+  multiple
+>
+
+<ul id="listFoto" class="file-list"></ul>
+
+  <div style="text-align:center; margin-top:25px;">
+    <button type="submit" class="btn-submit">💾 Simpan Data</button>
+  </div>
+  </div>
+
+  <!-- Halaman Ringkasan (Preview) -->
+<!--  Halaman Ringkasan (Elegan & Berwarna) -->
+<div id="summary-page" style="display:none;">
+  <div class="summary-container">
+    <h3>📋 Ringkasan Data Stok APH</h3>
+    <p class="summary-subtitle">
+      Periksa kembali seluruh data sebelum dikirim.  
+      Jika ada kesalahan, tekan tombol <strong>Perbaiki</strong>.
+    </p>
+
+    <div id="summary-content" class="summary-box">
+      <!-- Ringkasan otomatis dari JS -->
+    </div>
+
+    <div class="summary-actions">
+      <button id="edit-btn" type="button" class="btn-edit">✏️ Perbaiki</button>
+      <button id="confirm-btn" type="button" class="btn-confirm">✅ Kirim Sekarang</button>
+    </div>
+  </div>
+</div>
+</form>
+
+    <!-- Progress Bar Overlay -->
+     <div id="loading-overlay" class="overlay">
+       <div class="progress-bar-container">
+         <div id="progress-bar"></div>
+       </div>
+       <p id="progress-text">Mengirim data... 0%</p>
+     </div>
+
+ <script>
+  // Data APH dari JSON
+  const aphData = <?!= HtmlService.createHtmlOutputFromFile('aph.json').getContent(); ?>;
+  // URUTKAN ABJAD
+  aphData.sort((a, b) => a.localeCompare(b, 'id'));
+
+  // Tambahan: load komoditas
+    const komoditasData = <?!= HtmlService.createHtmlOutputFromFile('komoditas.json').getContent(); ?>; 
+    
+  // Tambahan: load lokasi
+    const lokasiData = <?!= HtmlService.createHtmlOutputFromFile('lokasi.json').getContent(); ?>; 
+    const optData = <?!= HtmlService.createHtmlOutputFromFile('opt.json').getContent(); ?>;
+
+  // Tambah baris dinamis
+function addRow(sectionId) {
+  const container = document.getElementById(sectionId);
+  if (!container) return;
+
+  // Buat elemen baris
+  const row = document.createElement("div");
+  row.className = "aph-row";
+
+  // Select APH
+  const selectAph = document.createElement("select");
+  selectAph.name = sectionId + "[]";
+  selectAph.required = true;
+  selectAph.innerHTML = '<option value="">Jenis APH</option>';
+
+  // 🔹 Input tanggal produksi
+  let inputTanggal = null;
+
+//Blok Khusus Produksi
+if (sectionId === "produksi-explorasi" || sectionId === "produksi-isolat") {
+    inputTanggal = document.createElement("input");
+    inputTanggal.type = "text"; // Mulai sebagai teks biasa agar placeholder muncul di HP
+    inputTanggal.name = sectionId + "_tanggal[]";
+    inputTanggal.placeholder = "Tanggal Produksi";
+    inputTanggal.required = true;
+    
+    // Begitu diklik/disentuh di HP, langsung berubah wujud jadi kalender date picker
+    inputTanggal.addEventListener("focus", function() {
+      this.type = "date";
+    });
+    
+    // Jika diklik di tempat lain dan kosong, kembalikan ke teks agar placeholder tampil lagi
+    inputTanggal.addEventListener("blur", function() {
+      if (!this.value) {
+        this.type = "text";
+      }
+    });
+  }
+
+//Blok Khusus Perbanyakan
+if (sectionId === "perbanyakan-explorasi" || sectionId === "perbanyakan-isolat") {
+      inputTanggal = document.createElement("input");
+      inputTanggal.type = "text"; 
+      inputTanggal.name = sectionId + "_tanggal[]";
+      inputTanggal.placeholder = "Tanggal Perbanyakan";
+      inputTanggal.required = true;
+      inputTanggal.addEventListener("focus", function() { this.type = "date"; });
+      inputTanggal.addEventListener("blur", function() { if (!this.value) { this.type = "text"; } });
+    }
+
+
+  // ✅ HARUS DI LUAR BLOK IF AGAR BERJALAN UNTUK SEMUA SECTION
+  aphData.forEach(item => {
+    const opt = document.createElement("option");
+    opt.value = item;
+    opt.textContent = item;
+    selectAph.appendChild(opt);
+  });
+
+// Input volume
+  const inputVol = document.createElement("input");
+  inputVol.type = "number";
+  inputVol.name = sectionId + "_volume[]";
+  inputVol.placeholder = "Volume";
+  inputVol.step = "0.01";
+  inputVol.min = "0";
+  inputVol.required = true;
+
+  // validasi saat keluar field
+  inputVol.addEventListener("blur", () => validateVolume(inputVol));
+
+  // Select satuan
+  const selectSat = document.createElement("select");
+  selectSat.name = sectionId + "_satuan[]";
+  selectSat.required = true;
+  selectSat.innerHTML = `
+    <option value="">Satuan</option>
+    <option>Kg</option>
+    <option>Liter</option>
+    <option>Testube/Cawan Petri</option>
+    <option>Pias/Kotak</option>
+    <option>Batang</option>
+  `;
+
+      // Tambahan mulai: Komoditas Lokasi & Luasan khusus untuk Pemanfaatan APH
+      let selectKomoditas = null;
+      let inputLuasan = null;
+      let selectLokasi = null;
+      let inputLokasiLain = null;
+
+//Blok Khusus Pemanfaatan
+      if (sectionId === "pemanfaatan-explorasi" || sectionId === "pemanfaatan-isolat") {
+              // --- SISIPAN TANGGAL PEMANFAATAN DI SINI ---
+      inputTanggal = document.createElement("input");
+      inputTanggal.type = "text"; 
+      inputTanggal.name = sectionId + "_tanggal[]";
+      inputTanggal.placeholder = "Tanggal Pemanfaatan";
+      inputTanggal.required = true;
+      inputTanggal.addEventListener("focus", function() { this.type = "date"; });
+      inputTanggal.addEventListener("blur", function() { if (!this.value) { this.type = "text"; } });
+
+      selectKomoditas = document.createElement("select");
+      selectKomoditas.name = sectionId + "_komoditas[]";
+      selectKomoditas.required = true;
+      selectKomoditas.innerHTML = '<option value="">Komoditas</option>';
+      komoditasData.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item;
+        opt.textContent = item;
+        selectKomoditas.appendChild(opt);
+      });
+
+// Input luasan
+      inputLuasan = document.createElement("input");
+      inputLuasan.type = "number";
+      inputLuasan.name = sectionId + "_luasan[]";
+      inputLuasan.placeholder = "Luasan (ha)";
+      inputLuasan.step = "0.01";
+      inputLuasan.min = "0";
+      inputLuasan.required = true;
+
+      // 🔥 VALIDASI SAMA SEPERTI VOLUME
+      inputLuasan.addEventListener("blur", () => validateVolume(inputLuasan));
+
+      selectLokasi = document.createElement("select");
+      selectLokasi.name = sectionId + "_lokasi[]";
+      selectLokasi.required = true;
+      selectLokasi.innerHTML = '<option value="">Lokasi</option>';
+      inputLokasiLain = document.createElement("input");
+      inputLokasiLain.type = "text";
+      inputLokasiLain.name = sectionId + "_lokasi_lain[]";
+      inputLokasiLain.placeholder = "Ketik lokasi lainnya";
+      inputLokasiLain.style.display = "none";
+      lokasiData.forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item;
+      opt.textContent = item;
+      selectLokasi.appendChild(opt);
+      });
+
+      selectLokasi.addEventListener("change", () => {
+      if (selectLokasi.value === "__other__") {
+      inputLokasiLain.style.display = "block";
+      inputLokasiLain.required = true;
+      }   else {
+       inputLokasiLain.style.display = "none";
+       inputLokasiLain.required = false;
+       inputLokasiLain.value = "";
+      }
+      });
+
+    // Tambah opsi Lainnya
+    const optOther = document.createElement("option");
+    optOther.value = "__other__";
+    optOther.textContent = "Lainnya...";
+    selectLokasi.appendChild(optOther);
+      }
+
+    // Gabungkan
+    row.appendChild(selectAph);
+    row.appendChild(inputVol);
+    row.appendChild(selectSat);
+
+    if (inputTanggal) row.appendChild(inputTanggal);
+
+    if (selectKomoditas) row.appendChild(selectKomoditas);
+    if (inputLuasan) row.appendChild(inputLuasan);
+    if (selectLokasi) row.appendChild(selectLokasi);
+    if (inputLokasiLain) row.appendChild(inputLokasiLain); // INI WAJIB
+
+    container.appendChild(row);
+
+    // Tambahkan animasi masuk
+    row.classList.add("fade-in-slide");
+    setTimeout(() => row.classList.remove("fade-in-slide"), 500);
+   }
+
+    // Tambahkan baris default saat load (perbaikan)
+    window.addEventListener("DOMContentLoaded", () => {
+    const sections = [
+      "produksi-explorasi","produksi-isolat",
+      "perbanyakan-explorasi", "perbanyakan-isolat",
+      "pemanfaatan-explorasi","pemanfaatan-isolat"
+    ];
+
+    sections.forEach(id => {
+    const container = document.getElementById(id);
+    // hanya tambahkan satu baris default jika container ada dan kosong
+    if (container && container.children.length === 0) {
+    addRow(id); // pakai fungsi addRow() yang sudah didefinisikan sebelumnya
+    }
+  });
+  // Panggil 1 baris kosong untuk Serangan OPT
+    addRowOpt('serangan-opt');
+});
+
+//Huruf Kapital di setiap awal kata
+function capitalizeWords(text) {
+  return text.replace(/\b\w/g, char => char.toUpperCase());
+}
+
+// === Validasi volume: hanya angka, boleh 0, tidak boleh kosong atau minus ===
+function validateVolume(input) {
+  if (input.value === "") {
+    showError(input, "⚠️ Tidak boleh kosong");
+    return;
+  }
+  
+  const val = Number(input.value);
+
+  if (isNaN(val) || val <= 0) {
+    showError(input, "⚠️ Hanya angka ≥ 0");
+    return;
+  }
+  
+  clearError(input);
+}
+
+function showError(input, message) {
+  input.value = "";
+  input.style.border = "2px solid red";
+  input.placeholder = message;
+  setTimeout(() => (input.style.border = ""), 1500);
+}
+
+function clearError(input) {
+  input.style.border = "";
+}
+
+["provinsi","kabupaten","kecamatan","desa","penerima"].forEach(id => {
+  const input = document.getElementById(id);
+  if (!input) return;
+
+  input.addEventListener("input", () => {
+    const caret = input.selectionStart; 
+    input.value = capitalizeWords(input.value.toLowerCase()); 
+    input.setSelectionRange(caret, caret);
+  });
+});
+
+// === FUNGSI KHUSUS UNTUK MENAMBAH BARIS OPT ===
+  function addRowOpt(sectionId) {
+    const container = document.getElementById(sectionId);
+    if (!container) return;
+
+    const row = document.createElement("div");
+    row.className = "aph-row";
+
+    // 1. Dropdown Jenis OPT
+    const selectOpt = document.createElement("select");
+    selectOpt.name = "jenis_opt[]";
+    selectOpt.required = true;
+    selectOpt.innerHTML = '<option value="">Jenis OPT</option>';
+
+    optData.forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item;
+      opt.textContent = item;
+      selectOpt.appendChild(opt);
+    });
+
+    // Tambah Opsi "Lainnya..."
+    const optOther = document.createElement("option");
+    optOther.value = "__other__";
+    optOther.textContent = "Lainnya...";
+    selectOpt.appendChild(optOther);
+
+    // 2. Input Manual (Disembunyikan secara default)
+    const inputOptLain = document.createElement("input");
+    inputOptLain.type = "text";
+    inputOptLain.name = "jenis_opt_lain[]";
+    inputOptLain.placeholder = "Ketik Jenis OPT lainnya";
+    inputOptLain.style.display = "none";
+
+    // Logika Jika "Lainnya" dipilih
+    selectOpt.addEventListener("change", () => {
+      if (selectOpt.value === "__other__") {
+        inputOptLain.style.display = "block";
+        inputOptLain.required = true;
+      } else {
+        inputOptLain.style.display = "none";
+        inputOptLain.required = false;
+        inputOptLain.value = "";
+      }
+    });
+
+    // 3. Dropdown Intensitas Serangan
+    const selectIntensitas = document.createElement("select");
+    selectIntensitas.name = "intensitas_serangan[]";
+    selectIntensitas.required = true;
+    selectIntensitas.innerHTML = `
+      <option value="">Intensitas Serangan</option>
+      <option value="Ringan">Ringan</option>
+      <option value="Sedang">Sedang</option>
+      <option value="Tinggi">Tinggi</option>
+    `;
+
+    // Gabungkan ke dalam baris
+    row.appendChild(selectOpt);
+    row.appendChild(inputOptLain);
+    row.appendChild(selectIntensitas);
+
+    container.appendChild(row);
+    row.classList.add("fade-in-slide");
+    setTimeout(() => row.classList.remove("fade-in-slide"), 500);
+  }
+
+function removeRow(sectionId) {
+  const container = document.getElementById(sectionId);
+  if (!container) return;
+  const rows = container.querySelectorAll(".aph-row");
+  
+  // Membolehkan hapus baris sampai habis (0 baris)
+  if (rows.length > 0) {
+    const lastRow = rows[rows.length - 1];
+    lastRow.classList.add("fade-out-slide");
+    setTimeout(() => lastRow.remove(), 350);
+  }
+}
+
+      // Submit form/ kirim data
+    document.getElementById("myForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const foto = document.getElementById("fotoEviden");
+      if (foto.files.length > 4) {
+        alert("❌ Maksimal 4 foto eviden");
+        return;
+      }
+
+      const form = e.target;
+      const formData = new FormData(form);
+    
+//  Cek semua volume sebelum lanjut
+      const allVolumes = document.querySelectorAll("input[name$='_volume[]']");
+      for (let v of allVolumes) {
+        if (v.value === "" || Number(v.value) < 0) {
+          alert("⚠️ Kolom volume tidak boleh kosong atau minus.\nPeriksa kembali input Anda.");
+          v.focus();
+          return;
+        }
+      }
+  
+ updateSummary(formData);
+
+  window.savedFormData = formData;
+  document.getElementById("form-section").style.display = "none";
+  document.getElementById("summary-page").style.display = "block";
+});
+
+// ==== FUNGSI UPDATE SUMMARY ====  
+function updateSummary(formData) {
+  // Bersihkan isi ringkasan lama agar tidak menumpuk
+  document.getElementById("summary-content").innerHTML = "";
+
+  function formatAphGroup(prefix) {
+    const hasil = [];
+    const names = formData.getAll(prefix + "[]");
+    const volumes = formData.getAll(prefix + "_volume[]");
+    const satuans = formData.getAll(prefix + "_satuan[]");
+    const used = new Set();
+
+    for (let i = 0; i < names.length; i++) {
+      const nama = (names[i] || "").trim();
+      const volume = (volumes[i] || "").trim();
+      const satuan = (satuans[i] || "").trim();
+      if (!nama) continue;
+      const key = `${nama}|${volume}|${satuan}`;
+      if (!used.has(key)) {
+        hasil.push(`${nama} ${volume} ${satuan}`.trim());
+        used.add(key);
+      }
+    }
+    return hasil;
+  }
+
+  const grouped = {
+    produksiEksplorasi: formatAphGroup("produksi-explorasi"),
+    produksiIsolat: formatAphGroup("produksi-isolat"),
+    perbanyakanEksplorasi: formatAphGroup("perbanyakan-explorasi"),
+    perbanyakanIsolat: formatAphGroup("perbanyakan-isolat"),
+    pemanfaatanEksplorasi: formatAphGroup("pemanfaatan-explorasi"),
+    pemanfaatanIsolat: formatAphGroup("pemanfaatan-isolat")
+  };
+
+// AMBIL DATA KHUSUS SERANGAN OPT
+  const optNames = formData.getAll("jenis_opt[]");
+  const optLain = formData.getAll("jenis_opt_lain[]");
+  const optIntens = formData.getAll("intensitas_serangan[]");
+  const listOPT = [];
+  for (let i = 0; i < optNames.length; i++) {
+    let namaOpt = optNames[i] === "__other__" ? optLain[i] : optNames[i];
+    if (namaOpt) listOPT.push({ nama: namaOpt, intensitas: optIntens[i] });
+  }
+
+const lainnya = [];
+  for (const [key, value] of formData.entries()) {
+    if (key.includes("produksi") || key.includes("pemanfaatan") || key.includes("perbanyakan") || key.includes("opt") || key.includes("intensitas")) continue;
+    lainnya.push({ key, value });
+  }
+
+  // UPDATE: desain kategori + tampilan Pemanfaatan APH lebih rapi & menampilkan sub-judul
+  function makeCategory(title, icon, colorClass, eksplorasiItems, isolatItems) {
+    if (eksplorasiItems.length === 0 && isolatItems.length === 0) return "";
+
+    const makeSubTable = (subTitle, data, bgColor) => {
+      if (data.length === 0) return "";
+
+      // UPDATE: tampilkan sub-judul (APH (Hasil Eksplorasi) / APH (Isolat LPHP)) untuk semua kategori,
+      // dan untuk "Pemanfaatann" tampilkan juga komoditas Lokasi & luasan + daftar jenis APH di bawahnya.
+if (title.includes("Pemanfaatan")) {
+
+const komoditasArr = formData.getAll(
+    subTitle.includes("Eksplorasi")
+      ? "pemanfaatan-explorasi_komoditas[]"
+      : "pemanfaatan-isolat_komoditas[]"
+  );
+const lokasiSelectArr = formData.getAll(
+  subTitle.includes("Eksplorasi")
+    ? "pemanfaatan-explorasi_lokasi[]"
+    : "pemanfaatan-isolat_lokasi[]"
+);
+
+const lokasiLainArr = formData.getAll(
+  subTitle.includes("Eksplorasi")
+    ? "pemanfaatan-explorasi_lokasi_lain[]"
+    : "pemanfaatan-isolat_lokasi_lain[]"
+);
+
+  const luasanArr = formData.getAll(
+    subTitle.includes("Eksplorasi")
+      ? "pemanfaatan-explorasi_luasan[]"
+      : "pemanfaatan-isolat_luasan[]"
+  );
+  const namaArr = formData.getAll(
+    subTitle.includes("Eksplorasi")
+      ? "pemanfaatan-explorasi[]"
+      : "pemanfaatan-isolat[]"
+  );
+  const volArr = formData.getAll(
+    subTitle.includes("Eksplorasi")
+      ? "pemanfaatan-explorasi_volume[]"
+      : "pemanfaatan-isolat_volume[]"
+  );
+  const satArr = formData.getAll(
+    subTitle.includes("Eksplorasi")
+      ? "pemanfaatan-explorasi_satuan[]"
+      : "pemanfaatan-isolat_satuan[]"
+  );
+
+  let html = `
+    <h5 style="
+  margin:0 0 12px 0;
+  padding:6px 14px;
+  display:inline-block;
+  background:rgba(253,203,110,0.25);
+  border-radius:20px;
+  font-weight:700 !important;
+  color:#6d4c00;
+    ">${subTitle}</h5>
+  `;
+
+  for (let i = 0; i < namaArr.length; i++) {
+    if (!namaArr[i]) continue;
+
+    html += `
+      <div style="
+        background:white;
+        border:1px solid rgba(0,0,0,0.08);
+        border-radius:8px;
+        padding:10px 12px;
+        margin-bottom:10px;
+        box-shadow:0 1px 2px rgba(0,0,0,0.04);
+      ">
+        <div style="display:grid; grid-template-columns:160px auto; gap:8px;">
+          <div style="font-weight:600; color:#1b5e20;">🌾 Komoditas:</div>
+          <div style="text-align:center;">${komoditasArr[i] || "-"}</div>
+
+          <div style="font-weight:600; color:#f57f17;">📐 Luasan (ha):</div>
+          <div style="text-align:center;">${luasanArr[i] || "-"}</div>
+
+          <div style="font-weight:600; color:#1b5e20;">📌 Lokasi:</div>
+          <div style="text-align:center;">
+            ${lokasiLainArr[i] || lokasiSelectArr[i] || "-"}
+          </div>
+
+          <div style="display:grid; grid-template-columns:160px 160px 160px; gap:8px;">
+            <div>${namaArr[i]}</div>
+            <div style="text-align:right;">${volArr[i] || "-"}</div>
+            <div style="text-align:center;">${satArr[i] || ""}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // WRAPPER KOTAK PUTIH YANG DIBUTUHKAN
+  return `
+  <div style="
+    background:white;
+    border-radius:12px;
+    padding:14px;
+    margin-bottom:18px;
+    border-left:6px solid #fdcb6e;
+    box-shadow:0 2px 5px rgba(0,0,0,0.08);
+  ">
+      ${html}
+    </div>
+  `;
+}
+
+      // untuk kategori selain pemanfaatan (Stok/Produksi/Sisa) gunakan tabel sederhana (tidak diubah struktur)
+      return `
+<div class="sub-category" style="background:#ffffff; border-radius:10px; padding:10px 12px; margin-top:10px; border-left:5px solid #0984e3; box-shadow:0 2px 4px rgba(0,0,0,0.06);">
+
+<h5 style="
+  margin:0 0 8px 0;
+  font-weight:700;
+  color:#2d3436;
+  font-size:0.95em;
+  background:rgba(108,92,231,0.08);
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:6px;
+">
+${subTitle}
+</h5>
+          <table class="summary-table" style="width:100%; border-collapse:collapse;">
+            ${data
+              .map((item) => {
+                const clean = String(item).trim().replace(/\s+/g, " ");
+                const parts = clean.split(" ");
+                let volumeIndex = parts.findIndex((p) => /^\d+([.,]\d+)?$/.test(p));
+                let nama = "", volume = "", satuan = "";
+                if (volumeIndex !== -1) {
+                  nama = parts.slice(0, volumeIndex).join(" ");
+                  volume = parts[volumeIndex];
+                  satuan = parts.slice(volumeIndex + 1).join(" ");
+                } else {
+                  nama = clean;
+                }
+                return `
+                  <tr style="border-bottom:1px dashed rgba(0,0,0,0.08);">
+                    <td style="width:60%; padding:6px 0;">${nama}</td>
+                    <td style="width:20%; text-align:right;">${volume}</td>
+                    <td style="width:20%; text-align:center;">${satuan}</td>
+                  </tr>`;
+              })
+              .join("")}
+          </table>
+        </div>`;
+    };
+
+    // warna & styling kategori (tetap seragam)
+    return `
+    <div class="summary-category ${colorClass}">
+
+        <h4 style="margin:0 0 8px 0; font-weight:700;">${icon} ${title}</h4>
+        ${makeSubTable("APH (Hasil Eksplorasi)", eksplorasiItems, "#ffffff")}
+        ${makeSubTable("APH (Isolat LPHP)", isolatItems, "#fbfbfb")}
+      </div>`;
+  }
+
+// CETAKAN KHUSUS SERANGAN OPT
+  function makeOptSummary(optData) {
+    if (optData.length === 0) return "";
+    return `
+      <div class="summary-category" style="background:#fff3e0; border-left:5px solid #e67e22; padding:15px; border-radius:8px; margin-bottom:12px;">
+        <h4 style="margin:0 0 10px 0; font-weight:700; color:#d35400;">🐛 Serangan OPT</h4>
+        <table style="width:100%; border-collapse:collapse; background:white; border-radius:6px; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+          <tr style="background:#e67e22; color:white;">
+            <th style="padding:8px; text-align:left;">Jenis OPT</th>
+            <th style="padding:8px; text-align:center;">Intensitas</th>
+          </tr>
+          ${optData.map(opt => `
+            <tr style="border-bottom:1px solid #eee;">
+              <td style="padding:8px; color: #2c3e50;">${opt.nama}</td>
+              <td style="padding:8px; text-align:center; font-weight:bold; color:${opt.intensitas === 'Tinggi' ? 'red' : opt.intensitas === 'Sedang' ? 'orange' : 'green'};">${opt.intensitas}</td>
+            </tr>
+          `).join('')}
+        </table>
+      </div>`;
+  }
+
+  // tampilkan data umum jika ada
+  let summaryHTML = "";
+  if (lainnya.length > 0) {
+    summaryHTML += `
+      <div class="summary-category" style="background:#f8f9fa; color:#2c3e50; padding:10px; border-radius:8px; margin-bottom:12px;">
+        <h4>📍 Data Umum</h4>
+        <ul style="margin:6px 0 0 0; padding-left:12px;">
+          ${lainnya.map((f) => `<li><strong>${f.key}</strong>: ${f.value}</li>`).join("")}
+        </ul>
+      </div>`;
+  }
+
+  // ðŸ”¸UPDATE: struktur utama tetap sama (tidak diubah), kini pemanfaatan menampilkan sub-judul seperti kategori lain
+summaryHTML +=
+  makeCategory("Produksi APH", "🌱", "category-produksi", grouped.produksiEksplorasi, grouped.produksiIsolat) +makeCategory("Perbanyakan APH", "♻️", "category-produksi", grouped.perbanyakanEksplorasi, grouped.perbanyakanIsolat) + 
+  makeCategory("Pemanfaatan APH", "⚙️", "category-pemanfaatan", grouped.pemanfaatanEksplorasi, grouped.pemanfaatanIsolat) + makeOptSummary(listOPT);
+  
+summaryHTML += renderFotoRingkasan();
+
+document.getElementById("summary-content").innerHTML = summaryHTML;
+} // end updateSummary  // UPDATE
+
+
+// ==== PERBAIKI ====
+document.getElementById("edit-btn").addEventListener("click", () => {
+  if (!window.savedFormData) return alert("Belum ada data untuk diperbaiki!");
+
+  document.getElementById("summary-page").style.display = "none";
+  document.getElementById("form-section").style.display = "block";
+
+const sections = [
+    "produksi-explorasi", "produksi-isolat",
+    "perbanyakan-explorasi", "perbanyakan-isolat",
+    "pemanfaatan-explorasi", "pemanfaatan-isolat"
+  ];
+
+sections.forEach(id => {
+  const c = document.getElementById(id);
+  c.innerHTML = "";
+  delete c.dataset.initialized; // WAJIB
+});
+
+// Bersihkan wadah OPT
+const optContainer = document.getElementById("serangan-opt");
+if (optContainer) optContainer.innerHTML = "";
+
+  sections.forEach(id => {
+    const names  = window.savedFormData.getAll(id + "[]");
+    const vols   = window.savedFormData.getAll(id + "_volume[]");
+    const sats   = window.savedFormData.getAll(id + "_satuan[]");
+    const komods = window.savedFormData.getAll(id + "_komoditas[]");
+    const tanggal = window.savedFormData.getAll(id + "_tanggal[]");
+    const luas   = window.savedFormData.getAll(id + "_luasan[]");
+    const lok    = window.savedFormData.getAll(id + "_lokasi[]");
+    const lokLain = window.savedFormData.getAll(id + "_lokasi_lain[]");
+
+    for (let i = 0; i < names.length; i++) {
+      addRow(id);
+      const rows = document.querySelectorAll(`#${id} .aph-row`);
+      const row = rows[rows.length - 1];
+
+      row.querySelector(`[name='${id}[]']`).value = names[i] || "";
+      row.querySelector(`[name='${id}_volume[]']`).value = vols[i] || "";
+      row.querySelector(`[name='${id}_satuan[]']`).value = sats[i] || "";
+
+      if (tanggal.length && row.querySelector(`[name='${id}_tanggal[]']`)) {
+      row.querySelector(`[name='${id}_tanggal[]']`).value = tanggal[i] || "";
+      }
+
+  // field KHUSUS pemanfaatan saja
+  if (id.startsWith("pemanfaatan")) {
+  if (komods.length)
+    row.querySelector(`[name='${id}_komoditas[]']`).value = komods[i] || "";
+  if (luas.length)
+    row.querySelector(`[name='${id}_luasan[]']`).value = luas[i] || "";
+
+  const selectLokasi = row.querySelector(`[name='${id}_lokasi[]']`);
+  const inputLokasiLain = row.querySelector(`[name='${id}_lokasi_lain[]']`);
+
+  const lokasiSelect = lok[i] || "";
+  const lokasiManual = lokLain[i] || "";
+
+  if (lokasiManual) {
+    selectLokasi.value = "__other__";
+    inputLokasiLain.style.display = "block";
+    inputLokasiLain.required = true;
+    inputLokasiLain.value = lokasiManual;
+  } else {
+    selectLokasi.value = lokasiSelect;
+    inputLokasiLain.style.display = "none";
+    inputLokasiLain.required = false;
+    inputLokasiLain.value = "";
+  }
+    }
+    }
+  });
+
+// KEMBALIKAN DATA SERANGAN OPT
+  const savedOptNames = window.savedFormData.getAll("jenis_opt[]");
+  const savedOptLain = window.savedFormData.getAll("jenis_opt_lain[]");
+  const savedIntensitas = window.savedFormData.getAll("intensitas_serangan[]");
+
+  for (let i = 0; i < savedOptNames.length; i++) {
+    addRowOpt("serangan-opt");
+    const rows = document.querySelectorAll("#serangan-opt .aph-row");
+    if (!rows || rows.length === 0) continue; // <--- INI TAMBAHANNYA
+    const row = rows[rows.length - 1];
+
+    const selOpt = row.querySelector("[name='jenis_opt[]']");
+    const inpLain = row.querySelector("[name='jenis_opt_lain[]']");
+    const selInten = row.querySelector("[name='intensitas_serangan[]']");
+
+    const valOpt = savedOptNames[i];
+    if (valOpt === "__other__") {
+      selOpt.value = "__other__";
+      inpLain.style.display = "block";
+      inpLain.required = true;
+      inpLain.value = savedOptLain[i] || "";
+    } else {
+      selOpt.value = valOpt || "";
+    }
+    selInten.value = savedIntensitas[i] || "";
+  }
+
+  ["provinsi","kabupaten","kecamatan","desa","penerima"].forEach(f => {
+    const val = window.savedFormData.get(f);
+    if (val !== undefined) document.getElementById(f).value = val;
+  });
+renderListFoto();
+});
+
+// === KONVERSI FOTO KE BASE64 (GLOBAL) ===
+async function readFilesAsBase64(files, formData) {
+  for (let i = 0; i < files.length && i < 4; i++) {
+    const base64 = await new Promise(res => {
+      const r = new FileReader();
+      r.onload = e => res(e.target.result);
+      r.readAsDataURL(files[i]);
+    });
+    formData.append("fotoBase64[]", base64);
+  }
+}
+
+function renderFotoRingkasan() {
+  if (!filesArray || filesArray.length === 0) {
+    return `
+      <div class="summary-category foto-summary">
+        <h4>📸 Foto Eviden</h4>
+        <i>Tidak ada foto dipilih</i>
+      </div>
+    `;
+  }
+
+  const items = filesArray.map(file => `
+    <div class="foto-item">
+      <img src="${URL.createObjectURL(file)}" class="foto-thumb">
+      <div class="foto-name">${file.name}</div>
+    </div>
+  `).join("");
+
+  return `
+    <div class="summary-category foto-summary">
+      <h4>📸 Foto Eviden (${filesArray.length})</h4>
+      <div class="foto-grid">
+        ${items}
+      </div>
+    </div>
+  `;
+}
+
+console.log("FORM SUBMIT SIAP DIPINDAHKAN KE google.script.run");
+document.getElementById("confirm-btn").addEventListener("click", async () => {
+  if (!window.savedFormData) {
+    alert("❌ Data tidak ditemukan, silakan isi ulang form");
+    return;
+  }
+
+  const overlay = document.getElementById("loading-overlay");
+  const bar = document.getElementById("progress-bar");
+  const text = document.getElementById("progress-text");
+
+  overlay.classList.add("show");
+  bar.style.width = "20%";
+  text.textContent = "Menyiapkan data...";
+
+// konversi foto dari filesArray (bukan input langsung)
+for (let file of filesArray) {
+  const base64 = await new Promise(res => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.readAsDataURL(file);
+  });
+  window.savedFormData.append("fotoBase64[]", base64);
+}
+
+  bar.style.width = "60%";
+  text.textContent = "Mengirim ke server...";
+
+function formDataToObjectFD(fd) {
+  const obj = {};
+  fd.forEach((value, key) => {
+    if (obj[key]) {
+      if (!Array.isArray(obj[key])) obj[key] = [obj[key]];
+      obj[key].push(value);
+    } else {
+      obj[key] = value;
+    }
+  });
+  return obj;
+}
+
+const payload = formDataToObjectFD(window.savedFormData);
+
+google.script.run
+.withSuccessHandler(msg => {
+  bar.style.width = "100%";
+  text.textContent = "Selesai 100%";
+
+  setTimeout(() => {
+    overlay.classList.remove("show");
+
+    alert(msg || "✅ Data berhasil dikirim");
+
+    // reset form TANPA reload halaman
+    document.getElementById("myForm").reset();
+    document.getElementById("summary-page").style.display = "none";
+    document.getElementById("form-section").style.display = "block";
+
+    // reset baris dinamis
+    const sections = [
+      "produksi-explorasi","produksi-isolat",
+      "pemanfaatan-explorasi","pemanfaatan-isolat"
+    ];
+
+    sections.forEach(id => {
+      const el = document.getElementById(id);
+      el.innerHTML = "";
+      delete el.dataset.initialized;
+      addRow(id);
+    });
+
+    // reset foto
+    filesArray = [];
+    renderListFoto();
+    window.savedFormData = null;
+
+    window.scrollTo(0,0);
+  }, 600);
+})
+  .withFailureHandler(err => {
+    overlay.classList.remove("show");
+    alert("❌ Error: " + err.message);
+  })
+  .submitForm(payload);
+});
+
+
+function formDataToObject(formData) {
+  const obj = {};
+  for (const [key, value] of formData.entries()) {
+    if (obj[key]) {
+      if (!Array.isArray(obj[key])) obj[key] = [obj[key]];
+      obj[key].push(value);
+    } else {
+      obj[key] = value;
+    }
+  }
+  return obj;
+}
+
+let filesArray = [];
+const maxFiles = 4;
+
+function renderListFoto() {
+  const list = document.getElementById("listFoto");
+  list.innerHTML = "";
+
+  filesArray.forEach((file, index) => {
+    const li = document.createElement("li");
+    li.className = "file-item";
+
+    // wrapper kiri (thumbnail + nama)
+    const left = document.createElement("div");
+    left.className = "file-left";
+
+    // thumbnail
+    const img = document.createElement("img");
+    img.className = "file-thumb";
+    img.src = URL.createObjectURL(file);
+
+    // nama file
+    const name = document.createElement("span");
+    name.className = "file-name";
+    name.textContent = file.name;
+
+    left.appendChild(img);
+    left.appendChild(name);
+
+    const btn = document.createElement("button");
+    btn.className = "btn-delete-file";
+    btn.type = "button";
+    btn.textContent = "❌";
+    btn.onclick = () => {
+      filesArray.splice(index, 1);
+      renderListFoto();
+    };
+
+    li.appendChild(left);
+    li.appendChild(btn);
+    list.appendChild(li);
+  });
+}
+
+document.getElementById("fotoEviden").addEventListener("change", function(e) {
+  const selectedFiles = Array.from(e.target.files);
+
+  if (selectedFiles.length === 0) return;
+
+  // cek total setelah ditambah
+  if (filesArray.length + selectedFiles.length > maxFiles) {
+    alert("❌ Maksimal 4 foto");
+    e.target.value = "";
+    return;
+  }
+
+  // masukkan semua file
+  selectedFiles.forEach(file => {
+    filesArray.push(file);
+  });
+
+  renderListFoto();
+
+  // reset supaya bisa upload file yang sama lagi
+  e.target.value = "";
+});
+
+// ==========================================
+  // FUNGSI ANIMASI DARI BERANDA MENUJU FORM
+  // ==========================================
+  function pilihProgram(program) {
+    // 1. Simpan pilihan (P4/PPHT)
+    document.getElementById('jenis_program').value = program;
+    
+    // 2. Ubah judul form otomatis
+    document.getElementById('form-title').innerText = "📝 Formulir Data Stok APH - " + program;
+    
+    // 3. Efek animasi hilang-muncul
+    const landing = document.getElementById('landing-page');
+    landing.classList.add('fade-out');
+    
+    setTimeout(() => {
+      landing.style.display = 'none';
+      const appContainer = document.getElementById('main-app-container');
+      appContainer.style.display = 'block';
+      appContainer.classList.add('fade-in'); 
+      window.scrollTo(0, 0); 
+    }, 500);
+  }
+
+</script>
+</body>
+</html>
